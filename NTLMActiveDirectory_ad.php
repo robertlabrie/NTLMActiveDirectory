@@ -1,35 +1,5 @@
 <?php
-if (true == false)
-{
-	try
-	{
-		$gc = adGCRoot();
-	}
-	catch (\Exeption $e)
-	{
-		print_r($e);
-		die();
-	}
-
-	try
-	{
-		$user = adUserGet($challenge);
-		print_r($user);
-	}
-	catch (\Exception $e)
-	{
-		print_r($e);
-		die();
-	}
-
-	$dn = $user['distinguishedName'];
-	$groups = Array();
-
-	adGroups($dn,$groups);
-
-	print_r($groups);
-}
-
+namespace robertlabrie\ActiveDirectoryLite;
 /**
  *Find all the group members for an AD object. Careful, I'm recursive!
  @param string $dn The DN of a user or group to check for subgroups
@@ -38,7 +8,7 @@ if (true == false)
  */
 function adGroups($dn,&$groups)
 {
-	//a forward slash is a special char for ADSI, even though it returns a DN
+	//a forward slash is a special char for ADSI, even though ADSI returns a DN
 	//with the forward slash not escaped -- thanks
 	$dn = str_replace("/","\\/",$dn);
 
