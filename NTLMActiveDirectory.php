@@ -49,6 +49,17 @@ $wgExtensionFunctions[] = 'NTLMActiveDirectory_auth_hook';
  * Note: If cookies are disabled, an infinite loop /might/ occur?
  */
 function NTLMActiveDirectory_auth_hook() {
+	global $wgUser, $wgRequest, $wgAuthRemoteuserDomain, $wgAuth;
+	
+	
+	//if MW thinks the user is logged in, then nothing further
+	//is required
+	if ($wgUser->isLoggedIn())
+	{
+		return;
+	}
+
+	
 	// Check for valid session
 	// Do this first so no AD lookup is done unless needed
 	$user = User::newFromSession();
@@ -61,8 +72,6 @@ function NTLMActiveDirectory_auth_hook() {
 	}
 
 
-	echo "Pork!<BR>\n";
-	global $wgUser, $wgRequest, $wgAuthRemoteuserDomain, $wgAuth;
 
 	// For a few special pages, don't do anything.
 	$title = $wgRequest->getVal( 'title' );
@@ -156,13 +165,14 @@ class NTLMActiveDirectory extends AuthPlugin {
 	 *
 	 * @return bool
 	 */
+	 /*
 	function allowPasswordChange() {
 		return false;
 	}
-
+	*/
 	public function strictUserAuth( $username )
 	{
-		return true;
+		return false;
 	}
 	/**
 	 * This should not be called because we do not allow password change.  Always
@@ -172,10 +182,11 @@ class NTLMActiveDirectory extends AuthPlugin {
 	 * @param $password String: password.
 	 * @return bool
 	 */
+	 /*
 	public function setPassword( $user, $password ) {
 		return false;
 	}
-
+	*/
 	/**
 	 * We don't support this but we have to return true for preferences to save.
 	 *
@@ -297,7 +308,7 @@ class NTLMActiveDirectory extends AuthPlugin {
 	 * @return bool
 	 */
 	public function strict() {
-		return true;
+		return false;
 	}
 
 	/**
@@ -368,6 +379,7 @@ class NTLMActiveDirectory extends AuthPlugin {
 	 * Normalize user names to the MediaWiki standard to prevent duplicate
 	 * accounts.
 	 *
+	 * @todo Since I normalize the UPN from AD, this is probably not needed. Unless some genius changes the case of a UPN in AD.
 	 * @param $username String: username.
 	 * @return string
 	 */
