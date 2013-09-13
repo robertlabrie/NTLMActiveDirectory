@@ -49,6 +49,18 @@ $wgExtensionFunctions[] = 'NTLMActiveDirectory_auth_hook';
  * Note: If cookies are disabled, an infinite loop /might/ occur?
  */
 function NTLMActiveDirectory_auth_hook() {
+	// Check for valid session
+	// Do this first so no AD lookup is done unless needed
+	$user = User::newFromSession();
+	if ( !$user->isAnon() ) {
+		if ( $user->getName() == $wgAuth->getCanonicalName( $username ) ) {
+			return;            // Correct user is already logged in.
+		} else {
+			$user->doLogout(); // Logout mismatched user.
+		}
+	}
+
+
 	echo "Pork!<BR>\n";
 	global $wgUser, $wgRequest, $wgAuthRemoteuserDomain, $wgAuth;
 
@@ -70,15 +82,6 @@ function NTLMActiveDirectory_auth_hook() {
 		$username = $_SERVER['REMOTE_USER'];
 	}
 
-	// Check for valid session
-	$user = User::newFromSession();
-	if ( !$user->isAnon() ) {
-		if ( $user->getName() == $wgAuth->getCanonicalName( $username ) ) {
-			return;            // Correct user is already logged in.
-		} else {
-			$user->doLogout(); // Logout mismatched user.
-		}
-	}
 
 	// Copied from includes/SpecialUserlogin.php
 	if ( !isset( $wgCommandLineMode ) && !isset( $_COOKIE[session_name()] ) ) {
@@ -369,8 +372,7 @@ class NTLMActiveDirectory extends AuthPlugin {
 	 * @return string
 	 */
 	public function getCanonicalName( $username ) {
-		// lowercase the username
-		$username = strtolower( $username );
+	
 		// uppercase first letter to make MediaWiki happy
 		return ucfirst( $username );
 	}
