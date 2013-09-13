@@ -1,15 +1,11 @@
 <?php
-/*
 
-This is a fork of Auth_remoteuser which handled the REMOTE_USER piece.
-*/
-// Extension credits that show up on Special:Version
 $wgExtensionCredits['other'][] = array(
-		'name' => 'NTLMActiveDirectory',
-		'version' => '0.0.1',
-		'author' => array( 'Robert Labrie' ),
-		'url' => 'https://www.mediawiki.org/wiki/Extension:NTLMActiveDirectory',
-		'description' => 'NTLM SSO for IIS and AD',
+		'name' => 'AutomaticREMOTE USER',
+		'version' => '1.1.4',
+		'author' => array( 'Otheus Shelling', 'Rusty Burchfield', 'James Kinsman', 'Daniel Thomas', 'Ian Ward Comfort' ),
+		'url' => 'https://www.mediawiki.org/wiki/Extension:AutomaticREMOTE_USER',
+		'description' => 'Automatically logs users using the REMOTE_USER environment variable.',
 );
 
 // We must allow zero length passwords. This extension does not work in MW 1.16 without this.
@@ -32,7 +28,7 @@ $wgAuthRemoteuserDomain = "NETBIOSDOMAIN"; /* Remove NETBIOSDOMAIN\ from the beg
 /* User's mail domain to append to the user name to make their email address */
 $wgAuthRemoteuserMailDomain = "example.com";
 
-$wgExtensionFunctions[] = 'Auth_remote_user_hook';
+$wgExtensionFunctions[] = 'NTLMActiveDirectory_auth_hook';
 
 /**
  * This hook is registered by the Auth_remoteuser constructor.  It will be
@@ -52,7 +48,8 @@ $wgExtensionFunctions[] = 'Auth_remote_user_hook';
  *
  * Note: If cookies are disabled, an infinite loop /might/ occur?
  */
-function Auth_remote_user_hook() {
+function NTLMActiveDirectory_auth_hook() {
+	echo "Pork!<BR>\n";
 	global $wgUser, $wgRequest, $wgAuthRemoteuserDomain, $wgAuth;
 
 	// For a few special pages, don't do anything.
@@ -66,7 +63,6 @@ function Auth_remote_user_hook() {
 	if ( !isset( $_SERVER['REMOTE_USER'] ) ) {
 		return;
 	}
-	if ($wgAuth->
 	if ( isset( $wgAuthRemoteuserDomain ) && strlen( $wgAuthRemoteuserDomain ) ) {
 		$username = str_replace( "$wgAuthRemoteuserDomain\\", "", $_SERVER['REMOTE_USER'] );
 		$username = str_replace( "@$wgAuthRemoteuserDomain", "", $username );
@@ -152,9 +148,6 @@ function Auth_remote_user_hook() {
 }
 
 class NTLMActiveDirectory extends AuthPlugin {
-	
-	
-	public $domainStrip = false;
 	/**
 	 * Disallow password change.
 	 *
@@ -164,6 +157,10 @@ class NTLMActiveDirectory extends AuthPlugin {
 		return false;
 	}
 
+	public function strictUserAuth( $username )
+	{
+		return true;
+	}
 	/**
 	 * This should not be called because we do not allow password change.  Always
 	 * fail by returning false.
@@ -232,6 +229,7 @@ class NTLMActiveDirectory extends AuthPlugin {
 	 * @return bool
 	 */
 	public function authenticate( $username, $password ) {
+		return false;
 		global $wgAuthRemoteuserAuthz, $wgAuthRemoteuserDomain;
 
 		if ( isset( $wgAuthRemoteuserAuthz ) && !$wgAuthRemoteuserAuthz ) {
