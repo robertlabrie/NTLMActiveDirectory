@@ -86,6 +86,7 @@ function NTLMActiveDirectory_auth_hook() {
 	{
 		return;
 	}
+	
 	$username = $wgAuth->getADUsername($_SERVER['REMOTE_USER']);
 	if (!$username)
 	{
@@ -321,35 +322,17 @@ class NTLMActiveDirectory extends AuthPlugin {
 	}
 
 	/**
-	 * Check whether the given name matches REMOTE_USER.
-	 * The name will be normalized to MediaWiki's requirements, so
-	 * lower it and the REMOTE_USER before checking.
-	 *
+	 * Authenticates a username. The web server already did this, and the hook
+	 * should have prevented the login from firing if REMOTE_USER
+	 * is not defined, so there is nothing for this function to do except
+	 * return true
 	 * @param $username String: username.
 	 * @param $password String: user password.
 	 * @return bool
 	 */
 	public function authenticate( $username, $password ) {
 		echo "authenticate: $username -- $password<BR>\n";
-		return false;
-		global $wgAuthRemoteuserAuthz, $wgAuthRemoteuserDomain;
-
-		if ( isset( $wgAuthRemoteuserAuthz ) && !$wgAuthRemoteuserAuthz ) {
-			return false;
-		}
-
-		if ( !isset( $_SERVER['REMOTE_USER'] ) ) {
-			$_SERVER['REMOTE_USER'] = "";
-		}
-
-		if ( isset( $wgAuthRemoteuserDomain ) && strlen( $wgAuthRemoteuserDomain ) > 0 ) {
-			$usertest = str_replace( "$wgAuthRemoteuserDomain\\", "", $_SERVER['REMOTE_USER'] );
-			$usertest = str_replace( "@$wgAuthRemoteuserDomain", "", $usertest );
-		} else {
-			$usertest = $_SERVER['REMOTE_USER'];
-		}
-
-		return ( strtolower( $username ) == strtolower( $usertest ) );
+		return true;
 	}
 
 	/**
