@@ -1,5 +1,5 @@
 <?php
-
+include_once(__DIR__ . "/NTLMActiveDirectory_ad.php");
 $wgExtensionCredits['other'][] = array(
 		'name' => 'AutomaticREMOTE USER',
 		'version' => '1.1.4',
@@ -81,7 +81,18 @@ function NTLMActiveDirectory_auth_hook() {
 		return;
 	}
 
-	
+	$username = $wgAuth->getADUsername($_SERVER['REMOTE_USER']);
+	if (!$username)
+	{
+		echo "You connected as " . $_SERVER['REMOTE_USER'] . " but we 
+			could not find your user in Active Directory. 
+			Maybe the UPN field is not specified. 
+			Please contact your administrator.";
+	}
+	else
+	{
+		echo "Username will be: " . $username . "<BR>\n";
+	}
 	if ( isset( $wgAuthRemoteuserDomain ) && strlen( $wgAuthRemoteuserDomain ) ) {
 		$username = str_replace( "$wgAuthRemoteuserDomain\\", "", $_SERVER['REMOTE_USER'] );
 		$username = str_replace( "@$wgAuthRemoteuserDomain", "", $username );
@@ -158,6 +169,58 @@ function NTLMActiveDirectory_auth_hook() {
 }
 
 class NTLMActiveDirectory extends AuthPlugin {
+
+	/**
+	 * @var string userFormat the format to return an AD username
+	 * the var is referenced by getADUsername()
+	 * nt - *default* returns the classic Windows NT format domain\username
+	 * upn - returns the NT5+ format username@domain.fqdn
+	 * sam - returns only the samAccountName - not a good choice in multi-domain environments
+	 * fullname - returns fullname without spaces so that John Smith becomes JohnSmith
+	 */
+	public $userFormat = 'nt';
+	
+	/**
+	 * Gets the active directory user object and returns the formatted username
+	 * @param $username The username being looked up.
+	 * @return string a formatted username, or false for a failure to lookup
+	 */
+	public function getADUsername($username)
+	{
+		//try and get the user
+		try
+		{
+			$user = robertlabrie\ActiveDirectoryLite\adUserGet($username);
+		}
+		catch (\Exception $e) { return false; }
+		
+		//if we didn't get it, fail out
+		if (!$user) { return false; }
+		
+		//we got it
+		
+		//nt
+		if ($this->userFormat == 'nt') { $ret = $user['netBIOSUsername']; }
+
+		//upn
+		if ($this->userFormat == 'upn') { $ret = $user['userPrincipalName']; }
+		
+		//sam
+		if ($this->userFormat == 'sam') { $ret = $user['samAccountName']; }
+		
+		//fullname
+		if ($this->userFormat == 'fullname')
+		{
+			$ret = ucfirst($user['givenName']) . ucfirst($user['sn']);
+			$ret = str_replace(" "."_",$ret);
+		}
+		
+		//do a ucfirst again just to make sure
+		$ret = ucfirst($ret);
+		
+		return $ret;
+	}
+
 	/**
 	 * Disallow password change.
 	 *
