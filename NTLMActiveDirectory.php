@@ -49,29 +49,30 @@ $wgExtensionFunctions[] = 'NTLMActiveDirectory_auth_hook';
  * Note: If cookies are disabled, an infinite loop /might/ occur?
  */
 function NTLMActiveDirectory_auth_hook() {
-	global $wgUser, $wgRequest, $wgAuthRemoteuserDomain, $wgAuth;
-	
-	
-	//if MW thinks the user is logged in, then nothing further
-	//is required
-	if ($wgUser->isLoggedIn())
+	//If there is no remote user, we cant log them in.
+	//just return
+	if (!array_key_exists('REMOTE_USER',$_SERVER))
 	{
 		return;
 	}
 
-	
-	// Check for valid session
-	// Do this first so no AD lookup is done unless needed
+
+	global $wgUser, $wgRequest, $wgAuthRemoteuserDomain, $wgAuth;
+
+	//check if REMOTE_USER is still valid for the user with the session ID
+	//The scenario is thus:
+	//User A connects with an auth header, we log them in, they get a cookie
+	//User B connects with an auth header, they send user A's cookie
+	//We use a new user option, NTLMActiveDirectory_remoteuser, to track this
 	$user = User::newFromSession();
-	if ( !$user->isAnon() ) {
-		if ( $user->getName() == $wgAuth->getCanonicalName( $username ) ) {
+	if (( !$user->isAnon() ) && $user->getOption('NTLMActiveDirectory_remoteuser')) {
+		if ( $user->getOption('NTLMActiveDirectory_remoteuser') == strtolower($_SERVER['REMOTE_USER']) ) {
 			return;            // Correct user is already logged in.
 		} else {
 			$user->doLogout(); // Logout mismatched user.
 		}
 	}
-
-
+	
 
 	// For a few special pages, don't do anything.
 	$title = $wgRequest->getVal( 'title' );
@@ -80,10 +81,7 @@ function NTLMActiveDirectory_auth_hook() {
 		return;
 	}
 
-	// Process the username if required
-	if ( !isset( $_SERVER['REMOTE_USER'] ) ) {
-		return;
-	}
+	
 	if ( isset( $wgAuthRemoteuserDomain ) && strlen( $wgAuthRemoteuserDomain ) ) {
 		$username = str_replace( "$wgAuthRemoteuserDomain\\", "", $_SERVER['REMOTE_USER'] );
 		$username = str_replace( "@$wgAuthRemoteuserDomain", "", $username );
