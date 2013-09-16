@@ -171,6 +171,31 @@ function NTLMActiveDirectory_auth_hook() {
 class NTLMActiveDirectory extends AuthPlugin {
 
 	/**
+	 * @var array exemptUsers Users which are exempt from auto-login
+	 * Items are added with the exemptUserAdd( $username ) function
+	 * and shold be in the format username\domain
+	 */
+	private $exemptUsers = Array('wikisysop');
+	
+	/**
+	 * Adds a user to the exempt users array
+	 * @param string $username The username to add to the list
+	 * @retrun null
+	 */
+	public function exemptUserAdd( $username )
+	{
+		array_push($this->exemptUsers,strtolower($username));
+	}
+	/**
+	 * Checks if a user is exempt from auto-login
+	 * @param string $username The username to check
+	 * @return bool
+	 */
+	public function isExempt( $username )
+	{
+		return in_array(strtolower($username),$this->exemptUsers);
+	}
+	/**
 	 * @var string userFormat the format to return an AD username
 	 * the var is referenced by getADUsername()
 	 * nt - *default* returns the classic Windows NT format domain\username
@@ -265,7 +290,7 @@ class NTLMActiveDirectory extends AuthPlugin {
 	 * @public
 	 */
 	function canCreateAccounts() {
-		return false;
+		return true;
 	}
 
 	/**
@@ -277,11 +302,13 @@ class NTLMActiveDirectory extends AuthPlugin {
 	 * @param $email string
 	 * @param $realname string
 	 * @return bool
+	 * @todo commented out this function so that it's not called
 	 */
+	 /*
 	public function addUser( $user, $password, $email = '', $realname = '' ) {
 		return false;
 	}
-
+	*/
 	/**
 	 * Pretend all users exist.  This is checked by authenticateUserData to
 	 * determine if a user exists in our 'db'.  By returning true we tell it that
