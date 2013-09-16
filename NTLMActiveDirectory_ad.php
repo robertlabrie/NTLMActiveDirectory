@@ -89,7 +89,7 @@ function adUserGet($challenge)
 	}
 
 	//finally assemble the upn to query
-	$upn = "$username@$userdomain*";
+	$upn = "$username@$userdomain.*";
 
 	//echo "name:$username\tdomain:$userdomain\n";
 	
