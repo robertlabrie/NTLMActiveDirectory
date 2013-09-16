@@ -81,6 +81,11 @@ function NTLMActiveDirectory_auth_hook() {
 		return;
 	}
 
+	//check here for exemptions
+	if ($wgAuth->isExempt($_SERVER['REMOTE_USER']))
+	{
+		return;
+	}
 	$username = $wgAuth->getADUsername($_SERVER['REMOTE_USER']);
 	if (!$username)
 	{
