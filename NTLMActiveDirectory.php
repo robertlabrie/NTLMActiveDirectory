@@ -202,7 +202,7 @@ class NTLMActiveDirectory extends AuthPlugin {
 	 * sam - returns only the samAccountName - not a good choice in multi-domain environments
 	 * fullname - returns fullname without spaces so that John Smith becomes JohnSmith
 	 */
-	public $userFormat = 'nt';
+	public $userFormat = 'upn';
 	
 	/**
 	 * Gets the active directory user object and returns the formatted username
@@ -227,7 +227,7 @@ class NTLMActiveDirectory extends AuthPlugin {
 		if ($this->userFormat == 'nt') { $ret = $user['netBIOSUsername']; }
 
 		//upn
-		if ($this->userFormat == 'upn') { $ret = $user['userPrincipalName']; }
+		if ($this->userFormat == 'upn') { $ret = str_replace("@",".",$user['userPrincipalName']); }
 		
 		//sam
 		if ($this->userFormat == 'sam') { $ret = $user['samAccountName']; }
@@ -330,6 +330,7 @@ class NTLMActiveDirectory extends AuthPlugin {
 	 * @return bool
 	 */
 	public function authenticate( $username, $password ) {
+		echo "authenticate: $username -- $password<BR>\n";
 		return false;
 		global $wgAuthRemoteuserAuthz, $wgAuthRemoteuserDomain;
 
