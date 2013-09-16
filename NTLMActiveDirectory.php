@@ -98,12 +98,6 @@ function NTLMActiveDirectory_auth_hook() {
 	{
 		echo "Username will be: " . $username . "<BR>\n";
 	}
-	if ( isset( $wgAuthRemoteuserDomain ) && strlen( $wgAuthRemoteuserDomain ) ) {
-		$username = str_replace( "$wgAuthRemoteuserDomain\\", "", $_SERVER['REMOTE_USER'] );
-		$username = str_replace( "@$wgAuthRemoteuserDomain", "", $username );
-	} else {
-		$username = $_SERVER['REMOTE_USER'];
-	}
 
 
 	// Copied from includes/SpecialUserlogin.php
