@@ -65,6 +65,7 @@ function NTLMActiveDirectory_auth_hook() {
 	//User B connects with an auth header, they send user A's cookie
 	//We use a new user option, NTLMActiveDirectory_remoteuser, to track this
 	$user = User::newFromSession();
+	echo "remote user is: " . $user->getOption('NTLMActiveDirectory_remoteuser') . "<BR>\n";
 	if (( !$user->isAnon() ) && $user->getOption('NTLMActiveDirectory_remoteuser')) {
 		if ( $user->getOption('NTLMActiveDirectory_remoteuser') == strtolower($_SERVER['REMOTE_USER']) ) {
 			return;            // Correct user is already logged in.
@@ -353,12 +354,14 @@ class NTLMActiveDirectory extends AuthPlugin {
 	 * The User object is passed by reference so it can be modified; don't
 	 * forget the & on your function declaration.
 	 *
+	 * @todo expand group membership here and update the user rights
 	 * @param $user User
 	 * @return bool
 	 */
 	public function updateUser( &$user ) {
 		// We only set this stuff when accounts are created.
 		$user->setOption('NTLMActiveDirectory_remoteuser',strtolower($_SERVER['REMOTE_USER']));
+		$user->saveSettings();
 		return true;
 	}
 
