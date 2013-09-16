@@ -358,6 +358,7 @@ class NTLMActiveDirectory extends AuthPlugin {
 	 */
 	public function updateUser( &$user ) {
 		// We only set this stuff when accounts are created.
+		$user->setOption('NTLMActiveDirectory_remoteuser',strtolower($_SERVER['REMOTE_USER']));
 		return true;
 	}
 
