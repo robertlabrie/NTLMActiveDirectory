@@ -190,3 +190,60 @@ function adExplodeDN($dn,$with_attrib=true)
 	
 	return $out;
 }
+
+/**
+ * Gets the DN of a group in domain\groupname format
+ * @param string $name the name of the group to lookup
+ * @return string the DN of the group, or false
+ */
+function adGroupGet($name)
+{
+	$groupbits = explode("\\",$name);
+	if (count($groupbits) > 1)
+	{
+		$groupname = $groupbits[1];
+		$groupdomain = strtolower($groupbits[0]);
+	}
+	else { return false; }
+	
+
+	//initialize some objects
+	$cn = new \COM("ADODB.Connection");
+	$rs = new \COM("ADODB.RecordSet");
+
+	//setup the ADODB connection
+	$cn->provider = "ADsDSOObject";
+
+
+	$cn->open("ADs Provider");
+
+	//get the GC root
+	$gc = adGCRoot();
+	
+	//assemble the query - use only fields from the GC for obvious reasons
+	$query = "<$gc>;(&(objectClass=group)(objectCategory=group)(sAMAccountName=$groupname));sAMAccountName,cn,distinguishedName;subtree";
+
+
+	//get the results
+	$out = false;
+	$rs = $cn->Execute($query);
+	if (($rs->EOF) && ($rs->BOF))
+	{
+		throw new \Exception("No matching group found for $name");
+	}
+	else
+	{
+		for (;!$rs->EOF;)
+		{
+			
+			$dn = strtolower($rs->fields['distinguishedName']->value);
+			if (strpos($dn,"dc=$groupdomain,"))
+			{
+				$out = $rs->fields['distinguishedName']->value;
+				break;
+			}
+			$rs->MoveNext();
+		}
+	}	
+	return $out;
+}
