@@ -49,6 +49,7 @@ $wgExtensionFunctions[] = 'NTLMActiveDirectory_auth_hook';
  * Note: If cookies are disabled, an infinite loop /might/ occur?
  */
 function NTLMActiveDirectory_auth_hook() {
+	//echo "<textarea rows=25 cols=80>" . var_export($_SESSION,true) . "</textarea>";
 	//If there is no remote user, we cant log them in.
 	//just return
 	if (!array_key_exists('REMOTE_USER',$_SERVER))
@@ -59,11 +60,7 @@ function NTLMActiveDirectory_auth_hook() {
 
 	global $wgUser, $wgRequest, $wgAuthRemoteuserDomain, $wgAuth;
 
-	/*
-	echo "Somevar: " . $_SESSION['NTLMActiveDirectory_somevar'] . "<BR>\n";
-	$_SESSION['NTLMActiveDirectory_somevar'] = "bozo";
-	*/
-	
+
 	
 	//check if REMOTE_USER is still valid for the user with the session ID
 	//The scenario is thus:
@@ -71,7 +68,7 @@ function NTLMActiveDirectory_auth_hook() {
 	//User B connects with an auth header, they send user A's cookie
 	//We use a new user option, NTLMActiveDirectory_remoteuser, to track this
 	$user = User::newFromSession();
-	echo "remote user is: " . $user->getOption('NTLMActiveDirectory_remoteuser') . "<BR>\n";
+	echo "stored remote user is: " . $user->getOption('NTLMActiveDirectory_remoteuser') . "<BR>\n";
 	if (( !$user->isAnon() ) && $user->getOption('NTLMActiveDirectory_remoteuser')) {
 		if ( $user->getOption('NTLMActiveDirectory_remoteuser') == strtolower($_SERVER['REMOTE_USER']) ) {
 			return;            // Correct user is already logged in.
@@ -87,14 +84,11 @@ function NTLMActiveDirectory_auth_hook() {
 		( $title == Title::makeName( NS_SPECIAL, 'UserLogin' ) ) ) {
 		return;
 	}
-
 	//check here for exemptions
 	if ($wgAuth->isExempt($_SERVER['REMOTE_USER']))
 	{
 		return;
 	}
-	
-	//check here to see if the user should have an account created
 	
 	$username = $wgAuth->getADUsername($_SERVER['REMOTE_USER']);
 	if (!$username)
@@ -103,13 +97,47 @@ function NTLMActiveDirectory_auth_hook() {
 			could not find your user in Active Directory. 
 			Maybe the UPN field is not specified. 
 			Please contact your administrator.";
+			return;
 	}
 	else
 	{
 		echo "Username will be: " . $username . "<BR>\n";
 	}
 
-
+	//check here to see if the user should have an account created
+	if (!isset($wgAuth->canHaveAccount))
+	{
+		//we use a session var to keep track if we've checked or not
+		//to cut down on queries to AD
+		if ((isset($_SESSION)) && (array_key_exists('NTLMActiveDirectory_canHaveAccount',$_SESSION)))
+		{
+			//the session var for canHaveAccount
+			$wgAuth->canHaveAccount = $_SESSION['NTLMActiveDirectory_canHaveAccount'];
+		}
+		else
+		{
+			//now we actually check on this setting
+			$wgAuth->canHaveAccount = false;	//initialize as false
+			try
+			{
+				$userDN = robertlabrie\ActiveDirectoryLite\adUserGet($_SERVER['REMOTE_USER']);
+				$userDN = $userDN['distinguishedName'];
+				$groups = array();
+				robertlabrie\ActiveDirectoryLite\adGroups($userDN,$groups);
+				foreach ($groups as $group)
+				{
+					if ($wgAuth->wikiUserGroupsCheck($group['netBIOSDomainName'] . "\\" . $group['samAccountName']))
+					{
+						$wgAuth->canHaveAccount = true;
+						break;
+					}
+				}
+			}
+			catch (\Exception $ex) {}
+			$_SESSION['NTLMActiveDirectory_canHaveAccount'] = $wgAuth->canHaveAccount;
+		}
+	}
+	echo "can have account: " . $wgAuth->canHaveAccount . "<BR>\n";
 	// Copied from includes/SpecialUserlogin.php
 	if ( !isset( $wgCommandLineMode ) && !isset( $_COOKIE[session_name()] ) ) {
 		wfSetupSession();
@@ -182,7 +210,7 @@ class NTLMActiveDirectory extends AuthPlugin {
 	/**
 	 * @var bool canHaveAccount flag if the user is allowed to have an account or not
 	 */ 
-	private $canHaveAccount;
+	public $canHaveAccount;
 	
 	/**
 	 * @var array wikiUserGroups An array of AD groups with users who should
@@ -191,10 +219,33 @@ class NTLMActiveDirectory extends AuthPlugin {
 	 */
 	private $wikiUserGroups = Array();
 	
+	/**
+	 * Add a group to the wiki user groups array
+	 * @param string groupname A group to add
+	 * @return null
+	 */
 	public function wikiUserGroupsAdd($groupname)
 	{
-		array_push($this->wikiUserGroups,$groupname);
+		array_push($this->wikiUserGroups,strtolower($groupname));
 	}
+
+	/**
+	 * Check to see if a group is in the wiki user groups array
+	 * Will return true if the array is empty!
+	 * @param string groupname A group to check
+	 * @return bool
+	 */
+	public function wikiUserGroupsCheck($groupname)
+	{
+		if (count($this->wikiUserGroups) == 0) { return true; }
+		$groupname = strtolower($groupname);
+		foreach ($this->wikiUserGroups as $g)
+		{
+			if ($groupname == $g) { return true; }
+		}
+		return false;
+	}
+
 	/**
 	 * @var array exemptUsers Users which are exempt from auto-login
 	 * Items are added with the exemptUserAdd( $username ) function
