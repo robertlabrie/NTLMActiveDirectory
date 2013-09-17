@@ -173,6 +173,7 @@ function NTLMActiveDirectory_auth_hook() {
 	do {
 		$tryagain = false;
 		// Submit a fake login form to authenticate the user.
+
 		$params = new FauxRequest( array(
 			'wpName' => $username,
 			'wpPassword' => '',
@@ -430,7 +431,6 @@ class NTLMActiveDirectory extends AuthPlugin {
 	 * @return bool
 	 */
 	public function authenticate( $username, $password ) {
-		echo "authenticate: $username -- $password<BR>\n";
 		return true;
 	}
 
@@ -485,49 +485,19 @@ class NTLMActiveDirectory extends AuthPlugin {
 	}
 
 	/**
-	 * When creating a user account, optionally fill in preferences and such.
-	 * For instance, you might pull the email address or real name from the
-	 * external user database.
+	 * Init some user settings. If we got here that means that the object was fully
+	 * initialized and the user created, but we'll need to re-query AD and transfer
+	 * props
 	 *
+	 * @todo We should set a prop of wgAuth to the user hash array to avoid a re-query
 	 * @param $user User object.
 	 * @param $autocreate bool
 	 */
 	public function initUser( &$user, $autocreate = false ) {
-		global $wgAuthRemoteuserName, $wgAuthRemoteuserMail, $wgAuthRemoteuserMailDomain,
-			$wgAuthRemoteuserNotify, $wgAuthRemoteuserDomain;
-
-		if ( isset( $wgAuthRemoteuserDomain ) && strlen( $wgAuthRemoteuserDomain ) ) {
-			$username = str_replace( "$wgAuthRemoteuserDomain\\", "", $_SERVER['REMOTE_USER'] );
-			$username = str_replace( "@$wgAuthRemoteuserDomain", "", $username );
-		} else {
-			$username = $_SERVER['REMOTE_USER'];
-		}
-
-		if ( isset( $wgAuthRemoteuserName ) ) {
-			$user->setRealName( $wgAuthRemoteuserName );
-		} else {
-			$user->setRealName( '' );
-		}
-
-		if ( isset( $wgAuthRemoteuserMail ) ) {
-			$user->setEmail( $wgAuthRemoteuserMail );
-		} elseif ( isset( $wgAuthRemoteuserMailDomain ) ) {
-			$user->setEmail( $username . '@' . $wgAuthRemoteuserMailDomain );
-		} else {
-			$user->setEmail( $username . "@example.com" );
-		}
-
-		$user->mEmailAuthenticated = wfTimestampNow();
-		$user->setToken();
-
-		// turn on e-mail notifications
-		if ( isset( $wgAuthRemoteuserNotify ) && $wgAuthRemoteuserNotify ) {
-			$user->setOption( 'enotifwatchlistpages', 1 );
-			$user->setOption( 'enotifusertalkpages', 1 );
-			$user->setOption( 'enotifminoredits', 1 );
-			$user->setOption( 'enotifrevealaddr', 1 );
-		}
-
+		$ADuser = robertlabrie\ActiveDirectoryLite\adUserGet($_SERVER['REMOTE_USER']);
+		
+		$user->setEmail($ADuser['mail']);
+		$user->setRealName($ADuser['givenName'] . ' ' . $ADuser['sn']);
 		$user->saveSettings();
 	}
 
