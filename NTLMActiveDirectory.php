@@ -28,6 +28,26 @@ $wgAuthRemoteuserDomain = "NETBIOSDOMAIN"; /* Remove NETBIOSDOMAIN\ from the beg
 /* User's mail domain to append to the user name to make their email address */
 $wgAuthRemoteuserMailDomain = "example.com";
 
+$wgHooks['UserLogout'][] = 'NTLMActiveDirectory_userlogout_hook';
+
+/**
+ * Unset some variables when the user logs out to help a smooth login again later
+ * @param mixed $user The user obect
+ */
+function NTLMActiveDirectory_userlogout_hook( &$user )
+{
+
+	//clear session vars
+	if (isset($_SESSION))
+	{	
+		if (array_key_exists('NTLMActiveDirectory_canHaveAccount',$_SESSION)) { unset($_SESSION['NTLMActiveDirectory_canHaveAccount']); }
+		if (array_key_exists('NTLMActiveDirectory_canLoginLocally',$_SESSION)) { unset($_SESSION['NTLMActiveDirectory_canLoginLocally']); }
+	}
+	//clear user var
+	$user->setOption('NTLMActiveDirectory_remoteuser','');
+	$user->saveSettings();
+	return true;
+}
 $wgExtensionFunctions[] = 'NTLMActiveDirectory_auth_hook';
 
 /**
