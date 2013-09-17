@@ -143,6 +143,9 @@ function NTLMActiveDirectory_auth_hook() {
 		wfSetupSession();
 	}
 
+	
+	//if they can't have an account, we can't log them in, so just return here
+	if (!$wgAuth->canHaveAccount) { return; }
 	// If the login form returns NEED_TOKEN try once more with the right token
 	$trycount = 0;
 	$token = '';
