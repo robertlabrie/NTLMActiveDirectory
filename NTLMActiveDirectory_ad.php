@@ -28,7 +28,7 @@ function adGroups($dn,&$groups)
 		$item = Array();
 		$item['cn'] = $com->cn;
 		$item['distinguishedName'] = trim($com->distinguishedName);
-
+		$item['samAccountName'] = trim($com->samAccountName);
 		//explode the DN and find the first DC, that will tell us netBIOSDomainName
 		$dn = $com->distinguishedName;
 		$dnbits = adExplodeDN($dn,2);
