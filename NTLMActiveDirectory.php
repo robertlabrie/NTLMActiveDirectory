@@ -59,6 +59,8 @@ function NTLMActiveDirectory_auth_hook() {
 
 	global $wgUser, $wgRequest, $wgAuthRemoteuserDomain, $wgAuth;
 
+	echo "Somevar: " . $_SESSION['NTLMActiveDirectory_somevar'] . "<BR>\n";
+	$_SESSION['NTLMActiveDirectory_somevar'] = "bozo";
 	//check if REMOTE_USER is still valid for the user with the session ID
 	//The scenario is thus:
 	//User A connects with an auth header, we log them in, they get a cookie
@@ -171,6 +173,17 @@ function NTLMActiveDirectory_auth_hook() {
 
 class NTLMActiveDirectory extends AuthPlugin {
 
+	/**
+	 * @var array wikiUserGroups An array of AD groups with users who should
+	 * have Wiki users created. The default is empty, so all AD users will get
+	 * a wiki user. Controlled by the function wikiUserGroupsAdd()
+	 */
+	private $wikiUserGroups = Array();
+	
+	public function wikiUserGroupsAdd($groupname)
+	{
+		array_push($this->wikiUserGroups,$groupname);
+	}
 	/**
 	 * @var array exemptUsers Users which are exempt from auto-login
 	 * Items are added with the exemptUserAdd( $username ) function
