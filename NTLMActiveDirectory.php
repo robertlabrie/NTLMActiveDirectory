@@ -27,7 +27,7 @@ function NTLMActiveDirectory_userlogout_hook( &$user )
 	if (isset($_SESSION))
 	{	
 		if (array_key_exists('NTLMActiveDirectory_canHaveAccount',$_SESSION)) { unset($_SESSION['NTLMActiveDirectory_canHaveAccount']); }
-		if (array_key_exists('NTLMActiveDirectory_canLoginLocally',$_SESSION)) { unset($_SESSION['NTLMActiveDirectory_canLoginLocally']); }
+		if (array_key_exists('NTLMActiveDirectory_canHaveLoginForm',$_SESSION)) { unset($_SESSION['NTLMActiveDirectory_canHaveLoginForm']); }
 	}
 	//clear user var
 	$user->setOption('NTLMActiveDirectory_remoteuser','');
@@ -261,12 +261,12 @@ class NTLMActiveDirectory extends AuthPlugin {
 	/**
 	 * @var bool canHaveLoginForm flag if the user is allowed to use the logon form
 	 */
-	public $canHaveLoginForm;
+	public $canHaveLoginForm = false;
 
 	/**
 	 * @var bool canHaveAccount flag if the user is allowed to have an account or not
 	 */ 
-	public $canHaveAccount;
+	public $canHaveAccount = false;
 	
 	/**
 	 * @var array wikiUserGroups An array of AD groups with users who should
