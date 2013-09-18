@@ -144,8 +144,6 @@ function NTLMActiveDirectory_auth_hook() {
 		}
 	}
 	echo "can have account: " . $wgAuth->canHaveAccount . "<BR>\n";
-	//if they can't have an account, we can't log them in, so just return here
-	if (!$wgAuth->canHaveAccount) { return; }
 	
 	//check here to see if the user can have the logon form
 	if (!isset($wgAuth->canHaveLoginForm))
@@ -188,6 +186,8 @@ function NTLMActiveDirectory_auth_hook() {
 		wfSetupSession();
 	}
 
+	//if they can't have an account, we can't log them in, so just return here
+	if (!$wgAuth->canHaveAccount) { return; }
 	
 	
 	// For a few special pages, don't do anything.
