@@ -64,7 +64,7 @@ $wgExtensionFunctions[] = 'NTLMActiveDirectory_auth_hook';
 function NTLMActiveDirectory_auth_hook() {
 	global $wgUser, $wgRequest, $wgAuthRemoteuserDomain, $wgAuth;
 
-	//echo "<textarea rows=25 cols=80>" . var_export($_SESSION,true) . "</textarea>";
+	
 	//If there is no remote user, we cant log them in.
 	//just return
 	if (!array_key_exists('REMOTE_USER',$_SERVER))
@@ -150,6 +150,43 @@ function NTLMActiveDirectory_auth_hook() {
 		}
 	}
 	echo "can have account: " . $wgAuth->canHaveAccount . "<BR>\n";
+	
+	//check here to see if the user can have the logon form
+	if (!isset($wgAuth->canHaveLoginForm))
+	{
+		//we use a session var to keep track if we've checked or not
+		//to cut down on queries to AD
+		if ((isset($_SESSION)) && (array_key_exists('NTLMActiveDirectory_canHaveLoginForm',$_SESSION)))
+		{
+			//the session var for canHaveLoginForm
+			$wgAuth->canHaveLoginForm = $_SESSION['NTLMActiveDirectory_canHaveLoginForm'];
+		}
+		else
+		{
+			//now we actually check on this setting
+			$wgAuth->canHaveLoginForm = false;	//initialize as false
+			try
+			{
+				$userDN = robertlabrie\ActiveDirectoryLite\adUserGet($wgAuth->REMOTE_USER);
+				$userDN = $userDN['distinguishedName'];
+				$groups = array();
+				robertlabrie\ActiveDirectoryLite\adGroups($userDN,$groups);
+				foreach ($groups as $group)
+				{
+					if ($wgAuth->wikiLocalUserGroupsCheck($group['netBIOSDomainName'] . "\\" . $group['samAccountName']))
+					{
+						$wgAuth->canHaveLoginForm = true;
+						break;
+					}
+				}
+			}
+			catch (\Exception $ex) {}
+			$_SESSION['NTLMActiveDirectory_canHaveLoginForm'] = $wgAuth->canHaveLoginForm;
+		}
+	
+	}
+	echo "can have login form: " . $wgAuth->canHaveLoginForm . "<BR>\n";
+	//canHaveLoginForm
 	// Copied from includes/SpecialUserlogin.php
 	if ( !isset( $wgCommandLineMode ) && !isset( $_COOKIE[session_name()] ) ) {
 		wfSetupSession();
@@ -261,12 +298,12 @@ class NTLMActiveDirectory extends AuthPlugin {
 	/**
 	 * @var bool canHaveLoginForm flag if the user is allowed to use the logon form
 	 */
-	public $canHaveLoginForm = false;
+	public $canHaveLoginForm;
 
 	/**
 	 * @var bool canHaveAccount flag if the user is allowed to have an account or not
 	 */ 
-	public $canHaveAccount = false;
+	public $canHaveAccount;
 	
 	/**
 	 * @var array wikiUserGroups An array of AD groups with users who should
