@@ -502,7 +502,8 @@ class NTLMActiveDirectory extends AuthPlugin {
 	 * @return bool
 	 */
 	public function authenticate( $username, $password ) {
-		return true;
+		if ($this->canHaveUser) { return true; }
+		return false;
 	}
 
 	/**
@@ -551,7 +552,8 @@ class NTLMActiveDirectory extends AuthPlugin {
 	 * @return bool
 	 */
 	public function strict() {
-		return false;
+		if ($this->canHaveLoginForm) { return false; }
+		return true;
 	}
 
 	/**
