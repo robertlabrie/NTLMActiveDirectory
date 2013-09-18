@@ -1,11 +1,30 @@
 <?php
+/**
+ * AuthPlugin extension - Uses REMOTE_USER against Active Directory to use NT groups for feature control and SSO
+ * This extension is a fork of automaticREMOTE_USER heavily modified for AD and Windows Server
+ * @version 0.0.1 - 2013/09/18 
+ *
+ * @link https://www.mediawiki.org/w/index.php?title=Extension:NTLMActiveDirectory
+ *
+ * @file NTLMActiveDirectory.php
+ * @ingroup Extensions
+ * @package MediaWiki
+ * @author Robert Labrie <robert.labrie@gmail.com>
+ * @copyright (C) 2006 Otheus Shelling
+ * @copyright (C) 2007 Rusty Burchfield
+ * @copyright (C) 2009 James Kinsman
+ * @copyright (C) 2010 Daniel Thomas
+ * @copyright (C) 2010 Ian Ward Comfo
+ * @copyright (C) 2013 Robert Labrie
+ * @license http://www.gnu.org/copyleft/gpl.html GNU General Public License 2.0 or later
+ */
 include_once(__DIR__ . "/NTLMActiveDirectory_ad.php");
 
 
 $wgExtensionCredits['other'][] = array(
 		'name' => 'NTLMActiveDirectory',
 		'version' => '0.0.1',
-		'author' => array( 'Robert Labrie' ),
+		'author' => array( 'Robert Labrie', '...' ),
 		'url' => 'https://www.mediawiki.org/wiki/Extension:NTLMActiveDirectory',
 		'description' => 'Logs users in with the REMOTE_USER variable, extended by active directory.',
 );
@@ -606,8 +625,6 @@ class NTLMActiveDirectory extends AuthPlugin {
 	 * @param $type String
 	 */
 	public function modifyUITemplate( &$template, &$type ) {
-		//echo "UI template fired!" . get_class($template) . "<BR>";
-		//echo "<pre>" . var_export($template,true) . "</pre><BR>";
 		if (get_class($template) == 'UserloginTemplate')
 		{
 			$template->set( 'link', false);
