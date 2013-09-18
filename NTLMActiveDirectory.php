@@ -1,5 +1,7 @@
 <?php
 include_once(__DIR__ . "/NTLMActiveDirectory_ad.php");
+
+
 $wgExtensionCredits['other'][] = array(
 		'name' => 'NTLMActiveDirectory',
 		'version' => '0.0.1',
@@ -40,6 +42,13 @@ $wgExtensionFunctions[] = 'NTLMActiveDirectory_auth_hook';
  * in the user.  The Auth_remoteuser class is an AuthPlugin and handles the
  * actual authentication, user creation, etc.
  *
+ * This hook is registered by wgExtensionFunctions and is called on every page
+ * load. It serves the following functions
+ * 1. Check to see if REMOTE_USER was populated
+ * 2. Check to see if the user is already logged in
+ * 3. Initialize wgAuth with values from active directory
+ * 4. Attempt to login the user
+ *
  * Details:
  * 1. Check to see if the user has a session and is not anonymous.  If this is
  *    true, check whether REMOTE_USER matches the session user.  If so, we can
@@ -48,7 +57,7 @@ $wgExtensionFunctions[] = 'NTLMActiveDirectory_auth_hook';
  * 2. If the user doesn't have a session, we create a login form with our own
  *    fake request and ask the form to authenticate the user.  If the user does
  *    not exist authenticateUserData will attempt to create one.  The login form
- *    uses our Auth_remoteuser class as an AuthPlugin.
+ *    uses our NTLMActiveDirectory class as an AuthPlugin.
  *
  * Note: If cookies are disabled, an infinite loop /might/ occur?
  */
