@@ -1,11 +1,11 @@
 <?php
 include_once(__DIR__ . "/NTLMActiveDirectory_ad.php");
 $wgExtensionCredits['other'][] = array(
-		'name' => 'AutomaticREMOTE USER',
-		'version' => '1.1.4',
-		'author' => array( 'Otheus Shelling', 'Rusty Burchfield', 'James Kinsman', 'Daniel Thomas', 'Ian Ward Comfort' ),
-		'url' => 'https://www.mediawiki.org/wiki/Extension:AutomaticREMOTE_USER',
-		'description' => 'Automatically logs users using the REMOTE_USER environment variable.',
+		'name' => 'NTLMActiveDirectory',
+		'version' => '0.0.1',
+		'author' => array( 'Robert Labrie' ),
+		'url' => 'https://www.mediawiki.org/wiki/Extension:NTLMActiveDirectory',
+		'description' => 'Logs users in with the REMOTE_USER variable, extended by active directory.',
 );
 
 // We must allow zero length passwords. This extension does not work in MW 1.16 without this.
