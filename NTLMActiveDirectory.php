@@ -34,8 +34,33 @@ function NTLMActiveDirectory_userlogout_hook( &$user )
 	$user->saveSettings();
 	return true;
 }
-$wgExtensionFunctions[] = 'NTLMActiveDirectory_auth_hook';
 
+$wgHooks['SpecialPage_initList'][]='NTLMActiveDirectory_specialpages';
+function NTLMActiveDirectory_specialpages(&$list)
+{
+	global $wgAuth;
+	if (!$wgAuth->canHaveLoginForm) { unset( $list['Userlogin'] ); }
+	return true;
+}
+
+$wgHooks['PersonalUrls'][] = 'NTLMActiveDirectory_remove_links';
+/**
+ * Function to remove Login and Create Account links for users who should not have the form
+ */
+function NTLMActiveDirectory_remove_links(&$personal_urls, &$wgTitle)
+{  
+	global $wgAuth;
+	if (!$wgAuth->canHaveLoginForm)
+	{ 
+		unset( $personal_urls["login"] ); 
+		unset( $personal_urls["anonlogin"] ); 
+		unset( $personal_urls["createaccount"] ); 
+		
+	}
+	return true;
+}
+
+$wgExtensionFunctions[] = 'NTLMActiveDirectory_auth_hook';
 /**
  * This hook is registered by the Auth_remoteuser constructor.  It will be
  * called on every page load.  It serves the function of automatically logging
@@ -502,7 +527,7 @@ class NTLMActiveDirectory extends AuthPlugin {
 	 * @return bool
 	 */
 	public function authenticate( $username, $password ) {
-		if ($this->canHaveUser) { return true; }
+		if ($this->canHaveAccount) { return true; }
 		return false;
 	}
 
@@ -581,13 +606,20 @@ class NTLMActiveDirectory extends AuthPlugin {
 	 * @param $type String
 	 */
 	public function modifyUITemplate( &$template, &$type ) {
-		// disable the mail new password box
-		$template->set( 'useemail', false );
-		// disable 'remember me' box
-		$template->set( 'remember', false );
-		$template->set( 'create', false );
-		$template->set( 'domain', false );
-		$template->set( 'usedomain', false );
+		//echo "UI template fired!" . get_class($template) . "<BR>";
+		//echo "<pre>" . var_export($template,true) . "</pre><BR>";
+		if (get_class($template) == 'UserloginTemplate')
+		{
+			$template->set( 'link', false);
+			// disable the mail new password box
+			$template->set( 'useemail', false );
+			// disable 'remember me' box
+			$template->set( 'remember', false );
+			$template->set( 'create', false );
+			$template->set( 'domain', false );
+			$template->set( 'usedomain', false );
+		}
+
 	}
 
 	/**
