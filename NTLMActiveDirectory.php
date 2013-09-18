@@ -225,6 +225,45 @@ function NTLMActiveDirectory_auth_hook() {
 class NTLMActiveDirectory extends AuthPlugin {
 
 	/**
+	 * Add a group to the wiki local user groups array
+	 * @param string groupname A group to add
+	 * @return null
+	 */
+	public function wikiLocalUserGroupsAdd($groupname)
+	{
+		array_push($this->wikiLocalUserGroups,strtolower($groupname));
+	}
+
+	/**
+	 * Check to see if a group is in the wiki local user groups array
+	 * Will return false if the array is empty!
+	 * @param string groupname A group to check
+	 * @return bool
+	 */
+	public function wikiLocalUserGroupsCheck($groupname)
+	{
+		if (count($this->wikiLocalUserGroups) == 0) { return false; }
+		$groupname = strtolower($groupname);
+		foreach ($this->wikiLocalUserGroups as $g)
+		{
+			if ($groupname == $g) { return true; }
+		}
+		return false;
+	}
+	
+	/**
+	 * @var array wikiLocalUserGroups An array of AD groups with users who should
+	 * have access to the login form. The default is empty, so no one will get the
+	 * logon form. Controlled by the function wikiLocalUserGroupsAdd()
+	 */
+	private $wikiLocalUserGroups = Array();
+	
+	/**
+	 * @var bool canHaveLoginForm flag if the user is allowed to use the logon form
+	 */
+	public $canHaveLoginForm;
+
+	/**
 	 * @var bool canHaveAccount flag if the user is allowed to have an account or not
 	 */ 
 	public $canHaveAccount;
