@@ -90,12 +90,6 @@ function NTLMActiveDirectory_auth_hook() {
 	}
 	
 
-	// For a few special pages, don't do anything.
-	$title = $wgRequest->getVal( 'title' );
-	if ( ( $title == Title::makeName( NS_SPECIAL, 'UserLogout' ) ) ||
-		( $title == Title::makeName( NS_SPECIAL, 'UserLogin' ) ) ) {
-		return;
-	}
 	//check here for exemptions
 	if ($wgAuth->isExempt($wgAuth->REMOTE_USER))
 	{
@@ -150,6 +144,8 @@ function NTLMActiveDirectory_auth_hook() {
 		}
 	}
 	echo "can have account: " . $wgAuth->canHaveAccount . "<BR>\n";
+	//if they can't have an account, we can't log them in, so just return here
+	if (!$wgAuth->canHaveAccount) { return; }
 	
 	//check here to see if the user can have the logon form
 	if (!isset($wgAuth->canHaveLoginForm))
@@ -193,8 +189,14 @@ function NTLMActiveDirectory_auth_hook() {
 	}
 
 	
-	//if they can't have an account, we can't log them in, so just return here
-	if (!$wgAuth->canHaveAccount) { return; }
+	
+	// For a few special pages, don't do anything.
+	$title = $wgRequest->getVal( 'title' );
+	if ( ( $title == Title::makeName( NS_SPECIAL, 'UserLogout' ) ) ||
+		( $title == Title::makeName( NS_SPECIAL, 'UserLogin' ) ) ) {
+		return;
+	}
+	
 	// If the login form returns NEED_TOKEN try once more with the right token
 	$trycount = 0;
 	$token = '';
