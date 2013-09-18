@@ -140,6 +140,8 @@ function NTLMActiveDirectory_auth_hook() {
 		return;
 	}
 	
+	
+	//here we resolve the REMOTE_USER to the AD username
 	$username = $wgAuth->getADUsername($wgAuth->REMOTE_USER);
 	if (!$username)
 	{
@@ -418,7 +420,7 @@ class NTLMActiveDirectory extends AuthPlugin {
 	 * sam - returns only the samAccountName - not a good choice in multi-domain environments
 	 * fullname - returns fullname without spaces so that John Smith becomes JohnSmith
 	 */
-	public $userFormat = 'upn';
+	public $userFormat = 'nt';
 	
 	/**
 	 * Gets the active directory user object and returns the formatted username
