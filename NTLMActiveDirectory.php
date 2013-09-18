@@ -62,6 +62,8 @@ $wgExtensionFunctions[] = 'NTLMActiveDirectory_auth_hook';
  * Note: If cookies are disabled, an infinite loop /might/ occur?
  */
 function NTLMActiveDirectory_auth_hook() {
+	global $wgUser, $wgRequest, $wgAuthRemoteuserDomain, $wgAuth;
+
 	//echo "<textarea rows=25 cols=80>" . var_export($_SESSION,true) . "</textarea>";
 	//If there is no remote user, we cant log them in.
 	//just return
@@ -69,10 +71,7 @@ function NTLMActiveDirectory_auth_hook() {
 	{
 		return;
 	}
-
-
-	global $wgUser, $wgRequest, $wgAuthRemoteuserDomain, $wgAuth;
-
+	$wgAuth->REMOTE_USER = $_SERVER['REMOTE_USER'];
 
 	
 	//check if REMOTE_USER is still valid for the user with the session ID
@@ -224,6 +223,7 @@ function NTLMActiveDirectory_auth_hook() {
 
 class NTLMActiveDirectory extends AuthPlugin {
 
+	public $REMOTE_USER = null;
 	/**
 	 * Add a group to the wiki local user groups array
 	 * @param string groupname A group to add
