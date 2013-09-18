@@ -11,22 +11,6 @@ $wgExtensionCredits['other'][] = array(
 // We must allow zero length passwords. This extension does not work in MW 1.16 without this.
 $wgMinimalPasswordLength = 0;
 
-$wgAuthRemoteuserAuthz = true;
-$wgAuthRemoteuserDomain = null;
-
-/* User's name */
-$wgAuthRemoteuserName = isset( $_SERVER["AUTHENTICATE_CN"] )
-	? $_SERVER["AUTHENTICATE_CN"]
-	: '';
-
-/* User's Mail */
-$wgAuthRemoteuserMail = isset( $_SERVER["AUTHENTICATE_MAIL"] )
-	? $_SERVER["AUTHENTICATE_MAIL"]
-	: '';
-$wgAuthRemoteuserNotify = false; /* Do not send mail notifications */
-$wgAuthRemoteuserDomain = "NETBIOSDOMAIN"; /* Remove NETBIOSDOMAIN\ from the beginning or @NETBIOSDOMAIN at the end of a IWA username */
-/* User's mail domain to append to the user name to make their email address */
-$wgAuthRemoteuserMailDomain = "example.com";
 
 $wgHooks['UserLogout'][] = 'NTLMActiveDirectory_userlogout_hook';
 
