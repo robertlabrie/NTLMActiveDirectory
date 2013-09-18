@@ -82,7 +82,7 @@ function NTLMActiveDirectory_auth_hook() {
 	$user = User::newFromSession();
 	echo "stored remote user is: " . $user->getOption('NTLMActiveDirectory_remoteuser') . "<BR>\n";
 	if (( !$user->isAnon() ) && $user->getOption('NTLMActiveDirectory_remoteuser')) {
-		if ( $user->getOption('NTLMActiveDirectory_remoteuser') == strtolower($_SERVER['REMOTE_USER']) ) {
+		if ( $user->getOption('NTLMActiveDirectory_remoteuser') == strtolower($wgAuth->REMOTE_USER) ) {
 			return;            // Correct user is already logged in.
 		} else {
 			$user->doLogout(); // Logout mismatched user.
@@ -97,15 +97,15 @@ function NTLMActiveDirectory_auth_hook() {
 		return;
 	}
 	//check here for exemptions
-	if ($wgAuth->isExempt($_SERVER['REMOTE_USER']))
+	if ($wgAuth->isExempt($wgAuth->REMOTE_USER))
 	{
 		return;
 	}
 	
-	$username = $wgAuth->getADUsername($_SERVER['REMOTE_USER']);
+	$username = $wgAuth->getADUsername($wgAuth->REMOTE_USER);
 	if (!$username)
 	{
-		echo "You connected as " . $_SERVER['REMOTE_USER'] . " but we 
+		echo "You connected as " . $wgAuth->REMOTE_USER . " but we 
 			could not find your user in Active Directory. 
 			Maybe the UPN field is not specified. 
 			Please contact your administrator.";
@@ -132,7 +132,7 @@ function NTLMActiveDirectory_auth_hook() {
 			$wgAuth->canHaveAccount = false;	//initialize as false
 			try
 			{
-				$userDN = robertlabrie\ActiveDirectoryLite\adUserGet($_SERVER['REMOTE_USER']);
+				$userDN = robertlabrie\ActiveDirectoryLite\adUserGet($wgAuth->REMOTE_USER);
 				$userDN = $userDN['distinguishedName'];
 				$groups = array();
 				robertlabrie\ActiveDirectoryLite\adGroups($userDN,$groups);
@@ -489,8 +489,7 @@ class NTLMActiveDirectory extends AuthPlugin {
 	 * @return bool
 	 */
 	public function updateUser( &$user ) {
-		// We only set this stuff when accounts are created.
-		$user->setOption('NTLMActiveDirectory_remoteuser',strtolower($_SERVER['REMOTE_USER']));
+		$user->setOption('NTLMActiveDirectory_remoteuser',strtolower($this->REMOTE_USER));
 		$user->saveSettings();
 		return true;
 	}
@@ -526,7 +525,7 @@ class NTLMActiveDirectory extends AuthPlugin {
 	 * @param $autocreate bool
 	 */
 	public function initUser( &$user, $autocreate = false ) {
-		$ADuser = robertlabrie\ActiveDirectoryLite\adUserGet($_SERVER['REMOTE_USER']);
+		$ADuser = robertlabrie\ActiveDirectoryLite\adUserGet($this->REMOTE_USER);
 		
 		$user->setEmail($ADuser['mail']);
 		$user->setRealName($ADuser['givenName'] . ' ' . $ADuser['sn']);
