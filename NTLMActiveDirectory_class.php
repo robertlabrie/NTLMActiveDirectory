@@ -1,7 +1,15 @@
 <?php
 class NTLMActiveDirectory extends AuthPlugin {
 
-
+	/**
+	 * Returns an array of groups mapped to the specified group. Can return AD
+	 * groups mapped to a wiki group, or wiki groups mapped to an AD group.
+	 * If checking maps for type wiki, returns AD groups. If checking maps for type
+	 * ad, returns, wiki groups.
+	 * @param string grouptype The group type to check for mappings
+	 * @param string groupname The name of the group to check for mappings
+	 * @return mixed An array of matches. An empty array if none.
+	 */
 	public function groupMapLookup($grouptype, $groupname)
 	{
 		$out = Array();
@@ -23,11 +31,19 @@ class NTLMActiveDirectory extends AuthPlugin {
 		}
 		return $out;
 	}
+	/**
+	 * Adds a group map to the group mapping array
+	 * @param string wikiGroup The wiki group name
+	 * @param string adGroup The AD group name
+	 */
 	public function groupMapAdd($wikiGroup,$adGroup)
 	{
 		$item = Array($wikiGroup=>strtolower($adGroup));
 		array_push($this->groupMap,$item);
 	}
+	/**
+	 * @var array groupMap the array of group maps. Controlled by the function groupMapAdd
+	 */
 	private $groupMap = Array();
 	
 	/**
@@ -49,6 +65,7 @@ class NTLMActiveDirectory extends AuthPlugin {
 	 * @var string REMOTE_USER stores the remote user string
 	 */
 	public $REMOTE_USER;
+	
 	/**
 	 * Add a group to the wiki local user groups array
 	 * @param string groupname A group to add
@@ -328,20 +345,27 @@ class NTLMActiveDirectory extends AuthPlugin {
 		$user->setOption('NTLMActiveDirectory_remoteuser',strtolower($this->REMOTE_USER));
 		$user->saveSettings();
 		
-		//some heavy lifting here
-		// for each wiki group
-		//  |- for each AD group mapped to this wiki group
-		//      |- for each AD group the uses is a member of
-		//first we run through the users wiki group membership
-		//if any of those groups has a map, check check the users AD group membership
-		//for a match. If there is no match, we remove the user from the wiki group
 		$wikiGroups = $user->getGroups();
 		$this->reconcileWikiGroups($wikiGroups, $user, 'remove');
 		$wikiGroups = $user->getAllGroups();
 		$this->reconcileWikiGroups($wikiGroups, $user, 'add');
 		return true;
 	}
-
+	/**
+	* Some heavy lifting here. This function is responsbile for checking
+	* a specified list of wiki groups for AD group maps
+	* then checking the users AD group membership
+	* and enforcing wiki group membership
+	*  for each wiki group
+	*   |- for each AD group mapped to this wiki group
+	*       |- for each AD group the uses is a member of
+	* first we run through the users wiki group membership
+	* if any of those groups has a map, check check the users AD group membership
+	* for a match. If there is no match, we remove the user from the wiki group
+	* @param array wikiGroups an array of wikigroups to validate
+	* @param mixed user the MW user object for the signed in user
+	* @param string action the action to perform if a user does not satisfy a map. Can be remove or add.
+	*/
 	private function reconcileWikiGroups($wikiGroups, $user, $action)
 	{
 		foreach ($wikiGroups as $wgr)
