@@ -308,6 +308,17 @@ function NTLMActiveDirectory_auth_hook() {
 
 class NTLMActiveDirectory extends AuthPlugin {
 
+
+	public function groupMapAdd($wikiGroup,$adGroup)
+	{
+		$item = Array($wikiGroup=>strtolower($adGroup));
+		array_push($this->groupMap($item));
+	}
+	private $groupMap = Array();
+	
+	/**
+	 * @var string REMOTE_USER stores the remote user string
+	 */
 	public $REMOTE_USER = null;
 	/**
 	 * Add a group to the wiki local user groups array
@@ -445,18 +456,24 @@ class NTLMActiveDirectory extends AuthPlugin {
 		if ($this->userFormat == 'nt') { $ret = $user['netBIOSUsername']; }
 
 		//upn
-		if ($this->userFormat == 'upn') { $ret = str_replace("@",".",$user['userPrincipalName']); }
+		elseif ($this->userFormat == 'upn') { $ret = str_replace("@",".",$user['userPrincipalName']); }
 		
 		//sam
-		if ($this->userFormat == 'sam') { $ret = $user['samAccountName']; }
+		elseif ($this->userFormat == 'sam') { $ret = $user['samAccountName']; }
 		
 		//fullname
-		if ($this->userFormat == 'fullname')
+		elseif ($this->userFormat == 'fullname')
 		{
 			$ret = ucfirst($user['givenName']) . ucfirst($user['sn']);
 			$ret = str_replace(" "."_",$ret);
 		}
 		
+		//override with a custom hook
+		elseif (function_exists($this->userFormat))
+		{
+			$func = $this->userFormat;
+			$ret = $func( $user );
+		}
 		//do a ucfirst again just to make sure
 		$ret = ucfirst($ret);
 		
