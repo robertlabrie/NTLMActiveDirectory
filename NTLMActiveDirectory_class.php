@@ -231,15 +231,17 @@ class NTLMActiveDirectory extends AuthPlugin {
 	}
 
 	/**
-	 * Disallow password change.
+	 * Allow logon form users to change password, else no one can.
 	 *
 	 * @return bool
 	 */
-	 /*
+
 	function allowPasswordChange() {
+		echo "allowPasswordChange fired: " . $this->canHaveLoginForm . "<BR>";
+		if ($this->canHaveLoginForm) { return true; }
 		return false;
+
 	}
-	*/
 	public function strictUserAuth( $username )
 	{
 		return false;

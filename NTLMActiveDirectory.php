@@ -235,9 +235,10 @@ function NTLMActiveDirectory_auth_hook() {
 	
 	// For a few special pages, don't do anything.
 	$title = $wgRequest->getVal( 'title' );
-	if ( ( $title == Title::makeName( NS_SPECIAL, 'UserLogout' ) ) ||
-		( $title == Title::makeName( NS_SPECIAL, 'UserLogin' ) ) ) {
-		return;
+	$skipSpecial = Array('UserLogout','UserLogin','ChangePassword');
+	foreach ($skipSpecial as $skip)
+	{
+		if ($title == Title::makeNape( NS_SPECIAL, $skip)) { return; }
 	}
 	
 	// If the login form returns NEED_TOKEN try once more with the right token
