@@ -317,6 +317,16 @@ class NTLMActiveDirectory extends AuthPlugin {
 	private $groupMap = Array();
 	
 	/**
+	 * @var string userDN the DN of the AD user
+	 */
+	public $userDN;
+	
+	/**
+	 * @var array userInfo a hash array of user info set by getADUsername
+	 */
+	public $userInfo;
+	
+	/**
 	 * @var string REMOTE_USER stores the remote user string
 	 */
 	public $REMOTE_USER = null;
