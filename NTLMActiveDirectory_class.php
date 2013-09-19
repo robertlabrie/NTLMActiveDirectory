@@ -151,12 +151,13 @@ class NTLMActiveDirectory extends AuthPlugin {
 			$user = robertlabrie\ActiveDirectoryLite\adUserGet($this->REMOTE_USER);
 		}
 		catch (\Exception $e) { return false; }
-		
+
 		//if we didn't get it, fail out
 		if (!$user) { return false; }
 		
 		//we got it
-		
+		$this->userInfo = $user;
+		$this->userDN = $user['distinguishedName'];
 		//nt
 		if ($this->userFormat == 'nt') { $ret = $user['netBIOSUsername']; }
 
