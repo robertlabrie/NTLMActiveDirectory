@@ -108,6 +108,7 @@ $wgExtensionFunctions[] = 'NTLMActiveDirectory_auth_hook';
 function NTLMActiveDirectory_auth_hook() {
 	global $wgUser, $wgRequest, $wgAuthRemoteuserDomain, $wgAuth;
 	
+	//echo "<pre>" . var_export($_SESSION,true) . "</pre>";
 	//If there is no remote user, we cant log them in.
 	//just return
 	if (!array_key_exists('REMOTE_USER',$_SERVER))
@@ -133,9 +134,9 @@ function NTLMActiveDirectory_auth_hook() {
 			{
 				$wgAuth->canHaveLoginForm = $_SESSION['NTLMActiveDirectory_canHaveLoginForm'];
 			}
-			if (array_key_exists('NTLMActiveDirectory_canHaveLoginForm',$_SESSION))
+			if (array_key_exists('NTLMActiveDirectory_canHaveAccount',$_SESSION))
 			{
-				$wgAuth->canHaveLoginForm = $_SESSION['NTLMActiveDirectory_canHaveAccount'];
+				$wgAuth->canHaveAccount = $_SESSION['NTLMActiveDirectory_canHaveAccount'];
 			}
 			
 			return;            // Correct user is already logged in.
