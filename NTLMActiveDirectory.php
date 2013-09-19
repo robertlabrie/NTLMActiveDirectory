@@ -159,6 +159,15 @@ function NTLMActiveDirectory_auth_hook() {
 		echo "Username will be: " . $username . "<BR>\n";
 	}
 
+	
+	//get the expanded AD group membership for the user
+	$userADGroups = Array();
+	try
+	{
+		robertlabrie\ActiveDirectoryLite\adGroups($wgAuth->userDN,$userADGroups);
+	}
+	catch (\Exception $e) { }
+	
 	//check here to see if the user should have an account created
 	if (!isset($wgAuth->canHaveAccount))
 	{
@@ -173,21 +182,14 @@ function NTLMActiveDirectory_auth_hook() {
 		{
 			//now we actually check on this setting
 			$wgAuth->canHaveAccount = false;	//initialize as false
-			try
+			foreach ($userADGroups as $group)
 			{
-				$userDN = $wgAuth->userDN;
-				$groups = array();
-				robertlabrie\ActiveDirectoryLite\adGroups($userDN,$groups);
-				foreach ($groups as $group)
+				if ($wgAuth->wikiUserGroupsCheck($group['netBIOSDomainName'] . "\\" . $group['samAccountName']))
 				{
-					if ($wgAuth->wikiUserGroupsCheck($group['netBIOSDomainName'] . "\\" . $group['samAccountName']))
-					{
-						$wgAuth->canHaveAccount = true;
-						break;
-					}
+					$wgAuth->canHaveAccount = true;
+					break;
 				}
 			}
-			catch (\Exception $ex) {}
 			$_SESSION['NTLMActiveDirectory_canHaveAccount'] = $wgAuth->canHaveAccount;
 		}
 	}
