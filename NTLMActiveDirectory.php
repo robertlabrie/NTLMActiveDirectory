@@ -115,6 +115,8 @@ function NTLMActiveDirectory_auth_hook() {
 	{
 		return;
 	}
+	
+	//it is critical that the REMOTE_USER property is set, or many functions will fail false
 	$wgAuth->REMOTE_USER = $_SERVER['REMOTE_USER'];
 
 	
@@ -135,14 +137,14 @@ function NTLMActiveDirectory_auth_hook() {
 	
 
 	//check here for exemptions
-	if ($wgAuth->isExempt($wgAuth->REMOTE_USER))
+	if ($wgAuth->isExempt())
 	{
 		return;
 	}
 	
 	
 	//here we resolve the REMOTE_USER to the AD username
-	$username = $wgAuth->getADUsername($wgAuth->REMOTE_USER);
+	$username = $wgAuth->getADUsername();
 	if (!$username)
 	{
 		echo "You connected as " . $wgAuth->REMOTE_USER . " but we 
@@ -312,7 +314,7 @@ class NTLMActiveDirectory extends AuthPlugin {
 	public function groupMapAdd($wikiGroup,$adGroup)
 	{
 		$item = Array($wikiGroup=>strtolower($adGroup));
-		array_push($this->groupMap($item));
+		array_push($this->groupMap,$item);
 	}
 	private $groupMap = Array();
 	
@@ -329,7 +331,7 @@ class NTLMActiveDirectory extends AuthPlugin {
 	/**
 	 * @var string REMOTE_USER stores the remote user string
 	 */
-	public $REMOTE_USER = null;
+	public $REMOTE_USER;
 	/**
 	 * Add a group to the wiki local user groups array
 	 * @param string groupname A group to add
@@ -429,9 +431,10 @@ class NTLMActiveDirectory extends AuthPlugin {
 	 * @param string $username The username to check
 	 * @return bool
 	 */
-	public function isExempt( $username )
+	public function isExempt()
 	{
-		return in_array(strtolower($username),$this->exemptUsers);
+		if (!isset($this->REMOTE_USER)) { return false; }
+		return in_array(strtolower($this->REMOTE_USER),$this->exemptUsers);
 	}
 	/**
 	 * @var string userFormat the format to return an AD username
@@ -448,12 +451,13 @@ class NTLMActiveDirectory extends AuthPlugin {
 	 * @param $username The username being looked up.
 	 * @return string a formatted username, or false for a failure to lookup
 	 */
-	public function getADUsername($username)
+	public function getADUsername()
 	{
+		if (!isset($this->REMOTE_USER)) { return false; }
 		//try and get the user
 		try
 		{
-			$user = robertlabrie\ActiveDirectoryLite\adUserGet($username);
+			$user = robertlabrie\ActiveDirectoryLite\adUserGet($this->REMOTE_USER);
 		}
 		catch (\Exception $e) { return false; }
 		
