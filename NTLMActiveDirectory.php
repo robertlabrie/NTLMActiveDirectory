@@ -175,8 +175,7 @@ function NTLMActiveDirectory_auth_hook() {
 			$wgAuth->canHaveAccount = false;	//initialize as false
 			try
 			{
-				$userDN = robertlabrie\ActiveDirectoryLite\adUserGet($wgAuth->REMOTE_USER);
-				$userDN = $userDN['distinguishedName'];
+				$userDN = $wgAuth->userDN;
 				$groups = array();
 				robertlabrie\ActiveDirectoryLite\adGroups($userDN,$groups);
 				foreach ($groups as $group)
@@ -210,8 +209,7 @@ function NTLMActiveDirectory_auth_hook() {
 			$wgAuth->canHaveLoginForm = false;	//initialize as false
 			try
 			{
-				$userDN = robertlabrie\ActiveDirectoryLite\adUserGet($wgAuth->REMOTE_USER);
-				$userDN = $userDN['distinguishedName'];
+				$userDN = $wgAuth->userDN;
 				$groups = array();
 				robertlabrie\ActiveDirectoryLite\adGroups($userDN,$groups);
 				foreach ($groups as $group)

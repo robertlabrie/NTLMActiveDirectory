@@ -158,6 +158,7 @@ class NTLMActiveDirectory extends AuthPlugin {
 		//we got it
 		$this->userInfo = $user;
 		$this->userDN = $user['distinguishedName'];
+		
 		//nt
 		if ($this->userFormat == 'nt') { $ret = $user['netBIOSUsername']; }
 
