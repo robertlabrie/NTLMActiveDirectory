@@ -246,19 +246,7 @@ class NTLMActiveDirectory extends AuthPlugin {
 	{
 		return false;
 	}
-	/**
-	 * This should not be called because we do not allow password change.  Always
-	 * fail by returning false.
-	 *
-	 * @param $user User object.
-	 * @param $password String: password.
-	 * @return bool
-	 */
-	 /*
-	public function setPassword( $user, $password ) {
-		return false;
-	}
-	*/
+
 	/**
 	 * We don't support this but we have to return true for preferences to save.
 	 *
@@ -279,22 +267,6 @@ class NTLMActiveDirectory extends AuthPlugin {
 		return true;
 	}
 
-	/**
-	 * We don't support adding users to whatever service provides REMOTE_USER, so
-	 * fail by always returning false.
-	 *
-	 * @param User $user
-	 * @param $password string
-	 * @param $email string
-	 * @param $realname string
-	 * @return bool
-	 * @todo commented out this function so that it's not called
-	 */
-	 /*
-	public function addUser( $user, $password, $email = '', $realname = '' ) {
-		return false;
-	}
-	*/
 	/**
 	 * Pretend all users exist.  This is checked by authenticateUserData to
 	 * determine if a user exists in our 'db'.  By returning true we tell it that
