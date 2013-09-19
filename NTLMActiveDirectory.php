@@ -108,7 +108,7 @@ $wgExtensionFunctions[] = 'NTLMActiveDirectory_auth_hook';
  */
 function NTLMActiveDirectory_auth_hook() {
 	global $wgUser, $wgRequest, $wgAuthRemoteuserDomain, $wgAuth;
-
+	//echo "<pre>" . var_export($_SESSION) . "</pre>";
 	
 	//If there is no remote user, we cant log them in.
 	//just return
@@ -130,6 +130,16 @@ function NTLMActiveDirectory_auth_hook() {
 	echo "stored remote user is: " . $user->getOption('NTLMActiveDirectory_remoteuser') . "<BR>\n";
 	if (( !$user->isAnon() ) && $user->getOption('NTLMActiveDirectory_remoteuser')) {
 		if ( $user->getOption('NTLMActiveDirectory_remoteuser') == strtolower($wgAuth->REMOTE_USER) ) {
+			//these two properties need to be injected into the object
+			if (array_key_exists('NTLMActiveDirectory_canHaveLoginForm',$_SESSION))
+			{
+				$wgAuth->canHaveLoginForm = $_SESSION['NTLMActiveDirectory_canHaveLoginForm'];
+			}
+			if (array_key_exists('NTLMActiveDirectory_canHaveLoginForm',$_SESSION))
+			{
+				$wgAuth->canHaveLoginForm = $_SESSION['NTLMActiveDirectory_canHaveAccount'];
+			}
+			
 			return;            // Correct user is already logged in.
 		} else {
 			$user->doLogout(); // Logout mismatched user.
@@ -235,10 +245,10 @@ function NTLMActiveDirectory_auth_hook() {
 	
 	// For a few special pages, don't do anything.
 	$title = $wgRequest->getVal( 'title' );
-	$skipSpecial = Array('UserLogout','UserLogin','ChangePassword');
+	$skipSpecial = Array('UserLogout','UserLogin','ChangePassword','Preference');
 	foreach ($skipSpecial as $skip)
 	{
-		if ($title == Title::makeNape( NS_SPECIAL, $skip)) { return; }
+		if ($title == Title::makeName( NS_SPECIAL, $skip)) { return; }
 	}
 	
 	// If the login form returns NEED_TOKEN try once more with the right token
