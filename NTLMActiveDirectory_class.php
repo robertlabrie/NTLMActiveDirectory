@@ -2,6 +2,27 @@
 class NTLMActiveDirectory extends AuthPlugin {
 
 
+	public function groupMapLookup($grouptype, $groupname)
+	{
+		$out = Array();
+		foreach ($this->groupMap as $groupmap)
+		{
+			$wGroup = key($groupmap);
+			$adGroup = current($groupmap);
+			//this is all broken
+			$outGroup = false;
+			if (($grouptype == 'ad') && ($groupname == $adGroup))
+			{
+				$outGroup = $wGroup;
+			}
+			if (($grouptype == 'wiki') && ($groupname == $wGroup))
+			{
+				$outGroup = $adGroup;
+			}
+			if ($outGroup) { array_push($out,$outGroup); }
+		}
+		return $out;
+	}
 	public function groupMapAdd($wikiGroup,$adGroup)
 	{
 		$item = Array($wikiGroup=>strtolower($adGroup));
@@ -12,7 +33,7 @@ class NTLMActiveDirectory extends AuthPlugin {
 	/**
 	 * @var array userADGroups an array of AD groups the user belongs to
 	 */
-	public $userADgroups;
+	public $userADGroups;
 	
 	/**
 	 * @var string userDN the DN of the AD user
@@ -304,11 +325,63 @@ class NTLMActiveDirectory extends AuthPlugin {
 	 * @return bool
 	 */
 	public function updateUser( &$user ) {
+		echo "<pre>";
+		echo "update user fired<BR>";
+		//echo "user is in: " . var_export($this->userADGroups,true) . "<BR>";
 		$user->setOption('NTLMActiveDirectory_remoteuser',strtolower($this->REMOTE_USER));
 		$user->saveSettings();
+		
+		//some heavy lifting here
+		// for each wiki group
+		//  |- for each AD group mapped to this wiki group
+		//      |- for each AD group the uses is a member of
+		//first we run through the users wiki group membership
+		//if any of those groups has a map, check check the users AD group membership
+		//for a match. If there is no match, we remove the user from the wiki group
+		$wikiGroups = $user->getGroups();
+		$this->reconcileWikiGroups($wikiGroups, $user, 'remove');
+		echo "<BR>ALL GROUPS NOW<BR>";
+		$wikiGroups = $user->getAllGroups();
+		$this->reconcileWikiGroups($wikiGroups, $user, 'add');
+		echo "</pre>";
 		return true;
 	}
 
+	private function reconcileWikiGroups($wikiGroups, $user, $action)
+	{
+		foreach ($wikiGroups as $wgr)
+		{
+			echo "$wgr: ";
+			$maps = $this->groupMapLookup('wiki',$wgr);
+			
+			//if there are no maps for this group, just move on
+			if (count($maps) == 0) { continue; }
+			
+			//but if there *are* maps for this group, we need to evaluate them
+			//assume the user is to be removed
+			$bKeep = false;
+			
+			
+			foreach ($maps as $map)
+			{
+				foreach ($this->userADGroups as $adgr)
+				{
+					//echo "\t" . strtolower($adgr['netBIOSDomainName'] . "\\" .  $adgr['samAccountName']) . "==" . strtolower($map) . "<BR>";
+					if (strtolower($adgr['netBIOSDomainName'] . "\\" .  $adgr['samAccountName']) == strtolower($map)) { $bKeep = true; }
+				}
+			}
+			echo "$bKeep<BR>";
+			if (($action == 'add') && ($bKeep == true))
+			{
+				$user->addGroup($wgr);
+			}
+			if (($action == 'remove') && ($bKeep == false))
+			{
+				$user->removeGroup($wgr);
+			}
+		}
+	
+	}
 	/**
 	 * Return true because the wiki should create a new local account
 	 * automatically when asked to login a user who doesn't exist locally but

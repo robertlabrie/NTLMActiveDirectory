@@ -42,7 +42,7 @@ $wgHooks['UserLogout'][] = 'NTLMActiveDirectory_userlogout_hook';
  */
 function NTLMActiveDirectory_userlogout_hook( &$user )
 {
-
+	echo "logout fired<br>";
 	//clear session vars
 	if (isset($_SESSION))
 	{	
@@ -210,7 +210,7 @@ function NTLMActiveDirectory_auth_hook() {
 		{
 			//now we actually check on this setting
 			$wgAuth->canHaveLoginForm = false;	//initialize as false
-			foreach ($groups as $userADGroups)
+			foreach ($userADGroups as $group)
 			{
 				if ($wgAuth->wikiLocalUserGroupsCheck($group['netBIOSDomainName'] . "\\" . $group['samAccountName']))
 				{
