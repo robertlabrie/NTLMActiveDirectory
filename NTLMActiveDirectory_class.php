@@ -325,9 +325,6 @@ class NTLMActiveDirectory extends AuthPlugin {
 	 * @return bool
 	 */
 	public function updateUser( &$user ) {
-		echo "<pre>";
-		echo "update user fired<BR>";
-		//echo "user is in: " . var_export($this->userADGroups,true) . "<BR>";
 		$user->setOption('NTLMActiveDirectory_remoteuser',strtolower($this->REMOTE_USER));
 		$user->saveSettings();
 		
@@ -340,10 +337,8 @@ class NTLMActiveDirectory extends AuthPlugin {
 		//for a match. If there is no match, we remove the user from the wiki group
 		$wikiGroups = $user->getGroups();
 		$this->reconcileWikiGroups($wikiGroups, $user, 'remove');
-		echo "<BR>ALL GROUPS NOW<BR>";
 		$wikiGroups = $user->getAllGroups();
 		$this->reconcileWikiGroups($wikiGroups, $user, 'add');
-		echo "</pre>";
 		return true;
 	}
 
@@ -351,7 +346,6 @@ class NTLMActiveDirectory extends AuthPlugin {
 	{
 		foreach ($wikiGroups as $wgr)
 		{
-			echo "$wgr: ";
 			$maps = $this->groupMapLookup('wiki',$wgr);
 			
 			//if there are no maps for this group, just move on
@@ -370,7 +364,6 @@ class NTLMActiveDirectory extends AuthPlugin {
 					if (strtolower($adgr['netBIOSDomainName'] . "\\" .  $adgr['samAccountName']) == strtolower($map)) { $bKeep = true; }
 				}
 			}
-			echo "$bKeep<BR>";
 			if (($action == 'add') && ($bKeep == true))
 			{
 				$user->addGroup($wgr);
