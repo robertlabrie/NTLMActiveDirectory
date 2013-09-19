@@ -10,6 +10,11 @@ class NTLMActiveDirectory extends AuthPlugin {
 	private $groupMap = Array();
 	
 	/**
+	 * @var array userADGroups an array of AD groups the user belongs to
+	 */
+	public $userADgroups;
+	
+	/**
 	 * @var string userDN the DN of the AD user
 	 */
 	public $userDN;

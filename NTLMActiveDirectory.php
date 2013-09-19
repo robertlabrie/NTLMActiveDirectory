@@ -167,6 +167,7 @@ function NTLMActiveDirectory_auth_hook() {
 		robertlabrie\ActiveDirectoryLite\adGroups($wgAuth->userDN,$userADGroups);
 	}
 	catch (\Exception $e) { }
+	$wgAuth->userADGroups = $userADGroups;
 	
 	//check here to see if the user should have an account created
 	if (!isset($wgAuth->canHaveAccount))
@@ -209,21 +210,14 @@ function NTLMActiveDirectory_auth_hook() {
 		{
 			//now we actually check on this setting
 			$wgAuth->canHaveLoginForm = false;	//initialize as false
-			try
+			foreach ($groups as $userADGroups)
 			{
-				$userDN = $wgAuth->userDN;
-				$groups = array();
-				robertlabrie\ActiveDirectoryLite\adGroups($userDN,$groups);
-				foreach ($groups as $group)
+				if ($wgAuth->wikiLocalUserGroupsCheck($group['netBIOSDomainName'] . "\\" . $group['samAccountName']))
 				{
-					if ($wgAuth->wikiLocalUserGroupsCheck($group['netBIOSDomainName'] . "\\" . $group['samAccountName']))
-					{
-						$wgAuth->canHaveLoginForm = true;
-						break;
-					}
+					$wgAuth->canHaveLoginForm = true;
+					break;
 				}
 			}
-			catch (\Exception $ex) {}
 			$_SESSION['NTLMActiveDirectory_canHaveLoginForm'] = $wgAuth->canHaveLoginForm;
 		}
 	
