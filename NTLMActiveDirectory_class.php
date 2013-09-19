@@ -237,14 +237,32 @@ class NTLMActiveDirectory extends AuthPlugin {
 	 */
 
 	function allowPasswordChange() {
-		echo "allowPasswordChange fired: " . $this->canHaveLoginForm . "<BR>";
 		if ($this->canHaveLoginForm) { return true; }
 		return false;
 
 	}
+	/**
+	 * Don't require strict user auth
+	 *
+	 * @param string username The username trying to login
+	 * @return bool
+	 * @todo Doesn't this check canLoginLocally?
+	 */
 	public function strictUserAuth( $username )
 	{
-		return false;
+		if ($this->canHaveLoginForm) { return false; }
+		return true;
+	}
+
+	/**
+	 * Return true to prevent logins that don't authenticate here from being
+	 * checked against the local database's password fields.
+	 *
+	 * @return bool
+	 */
+	public function strict() {
+		if ($this->canHaveLoginForm) { return false; }
+		return true;
 	}
 
 	/**
@@ -258,11 +276,12 @@ class NTLMActiveDirectory extends AuthPlugin {
 	}
 
 	/**
-	 * We can't create external accounts so return false.
+	 * Allows account creation.
 	 *
 	 * @return bool
 	 * @public
 	 */
+	 
 	function canCreateAccounts() {
 		return true;
 	}
@@ -384,16 +403,6 @@ class NTLMActiveDirectory extends AuthPlugin {
 		return true;
 	}
 
-	/**
-	 * Return true to prevent logins that don't authenticate here from being
-	 * checked against the local database's password fields.
-	 *
-	 * @return bool
-	 */
-	public function strict() {
-		if ($this->canHaveLoginForm) { return false; }
-		return true;
-	}
 
 	/**
 	 * Init some user settings. If we got here that means that the object was fully

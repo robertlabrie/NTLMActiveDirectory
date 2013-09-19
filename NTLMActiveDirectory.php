@@ -42,7 +42,6 @@ $wgHooks['UserLogout'][] = 'NTLMActiveDirectory_userlogout_hook';
  */
 function NTLMActiveDirectory_userlogout_hook( &$user )
 {
-	echo "logout fired<br>";
 	//clear session vars
 	if (isset($_SESSION))
 	{	
@@ -108,7 +107,6 @@ $wgExtensionFunctions[] = 'NTLMActiveDirectory_auth_hook';
  */
 function NTLMActiveDirectory_auth_hook() {
 	global $wgUser, $wgRequest, $wgAuthRemoteuserDomain, $wgAuth;
-	//echo "<pre>" . var_export($_SESSION) . "</pre>";
 	
 	//If there is no remote user, we cant log them in.
 	//just return
@@ -127,7 +125,7 @@ function NTLMActiveDirectory_auth_hook() {
 	//User B connects with an auth header, they send user A's cookie
 	//We use a new user option, NTLMActiveDirectory_remoteuser, to track this
 	$user = User::newFromSession();
-	echo "stored remote user is: " . $user->getOption('NTLMActiveDirectory_remoteuser') . "<BR>\n";
+	//echo "stored remote user is: " . $user->getOption('NTLMActiveDirectory_remoteuser') . "<BR>\n";
 	if (( !$user->isAnon() ) && $user->getOption('NTLMActiveDirectory_remoteuser')) {
 		if ( $user->getOption('NTLMActiveDirectory_remoteuser') == strtolower($wgAuth->REMOTE_USER) ) {
 			//these two properties need to be injected into the object
@@ -164,11 +162,6 @@ function NTLMActiveDirectory_auth_hook() {
 			Please contact your administrator.";
 			return;
 	}
-	else
-	{
-		echo "Username will be: " . $username . "<BR>\n";
-	}
-
 	
 	//get the expanded AD group membership for the user
 	$userADGroups = Array();
@@ -204,7 +197,7 @@ function NTLMActiveDirectory_auth_hook() {
 			$_SESSION['NTLMActiveDirectory_canHaveAccount'] = $wgAuth->canHaveAccount;
 		}
 	}
-	echo "can have account: " . $wgAuth->canHaveAccount . "<BR>\n";
+	//echo "can have account: " . $wgAuth->canHaveAccount . "<BR>\n";
 	
 	//check here to see if the user can have the logon form
 	if (!isset($wgAuth->canHaveLoginForm))
@@ -232,7 +225,7 @@ function NTLMActiveDirectory_auth_hook() {
 		}
 	
 	}
-	echo "can have login form: " . $wgAuth->canHaveLoginForm . "<BR>\n";
+	//echo "can have login form: " . $wgAuth->canHaveLoginForm . "<BR>\n";
 	//canHaveLoginForm
 	// Copied from includes/SpecialUserlogin.php
 	if ( !isset( $wgCommandLineMode ) && !isset( $_COOKIE[session_name()] ) ) {
