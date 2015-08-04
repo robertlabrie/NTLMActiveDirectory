@@ -98,11 +98,19 @@ function adUserGet($challenge)
 	$cn = new \COM("ADODB.Connection");
 	$rs = new \COM("ADODB.RecordSet");
 
-	//setup the ADODB connection
-	$cn->provider = "ADsDSOObject";
-
-
-	$cn->open("ADs Provider");
+	//Determine if a special account is needed to authenticate to the Active Directory Services Interfaces (ADSI) Provider
+	global $wgNTLMActiveDirectoryADSIBindUser, $wgNTLMActiveDirectoryADSIBindPassword;
+	if (isset($wgNTLMActiveDirectoryADSIBindUser) && isset($wgNTLMActiveDirectoryADSIBindPassword)) {
+		//Special Application Authentication for ADSI Provider
+		$cn->open("Provider=ADsDSOObject;user id=$wgNTLMActiveDirectoryADSIBindUser;password=$wgNTLMActiveDirectoryADSIBindPassword;");
+	}
+	else
+	{
+		//Default Application Authentication for ADSI Provider
+		//setup the ADODB connection
+		$cn->provider = "ADsDSOObject";
+		$cn->open("ADs Provider");
+	}
 
 	//get the GC root
 	$gc = adGCRoot();
@@ -211,11 +219,19 @@ function adGroupGet($name)
 	$cn = new \COM("ADODB.Connection");
 	$rs = new \COM("ADODB.RecordSet");
 
-	//setup the ADODB connection
-	$cn->provider = "ADsDSOObject";
-
-
-	$cn->open("ADs Provider");
+	//Determine if a special account is needed to authenticate to the Active Directory Services Interfaces (ADSI) Provider
+	global $wgNTLMActiveDirectoryADSIBindUser, $wgNTLMActiveDirectoryADSIBindPassword;
+	if (isset($wgNTLMActiveDirectoryADSIBindUser) && isset($wgNTLMActiveDirectoryADSIBindPassword)) {
+		//Special Application Authentication for ADSI Provider
+		$cn->open("Provider=ADsDSOObject;user id=$wgNTLMActiveDirectoryADSIBindUser;password=$wgNTLMActiveDirectoryADSIBindPassword;");
+	}
+	else 
+	{
+		//Default Application Authentication for ADSI Provider
+		//setup the ADODB connection
+		$cn->provider = "ADsDSOObject";
+		$cn->open("ADs Provider");
+	}
 
 	//get the GC root
 	$gc = adGCRoot();
